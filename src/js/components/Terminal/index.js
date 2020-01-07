@@ -151,8 +151,18 @@ class Terminal extends Component {
       maximiseWindow: this.setTrue('maximise'),
       unmaximiseWindow: this.setFalse('maximise'),
       toggleShow: this.toggleState('show'),
-      toggleMaximise: this.toggleState('maximise'),
-      toggleMinimize: this.toggleState('minimise'),
+      toggleMaximise: () => {
+        if (this.state.minimise) {
+          this.setFalse('minimise')()
+        }
+        this.toggleState('maximise')()
+      },
+      toggleMinimize: () => {
+        if (this.state.maximise) {
+          this.setFalse('maximise')()
+        }
+        this.toggleState('minimise')()
+      },
     };
   }
 
