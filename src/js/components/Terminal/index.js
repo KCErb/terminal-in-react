@@ -1,6 +1,7 @@
 /* eslint-disable no-console, react/sort-comp */
 import React, { Component } from 'react';
-import stringSimilarity from 'string-similarity';
+// NOTE: I like this idea, but it's zsh not bash, for now let's just implement bash
+// import stringSimilarity from 'string-similarity';
 import whatkey from 'whatkey';
 import isEqual from 'lodash.isequal';
 import { ThemeProvider } from 'styled-components';
@@ -500,27 +501,14 @@ class Terminal extends Component {
   };
 
   /**
-   * autocomplete with the command the have the best match
+   * autocomplete with the command that has the best match
    * @param {object} input reference
    */
   autocompleteValue = (inputRef) => {
+    const input = inputRef.value;
     const { descriptions } = this.state;
     const keysToCheck = Object.keys(descriptions).filter(key => descriptions[key] !== false);
-    let ratings = [];
-    if (inputRef.value.length > 1) {
-      ratings = stringSimilarity.findBestMatch( // eslint-disable-line
-        inputRef.value,
-        keysToCheck,
-      ).ratings;
-    } else {
-      ratings = keysToCheck.reduce((full, item) => {
-        if (item.indexOf(inputRef.value) === 0) {
-          full.push({ target: item, rating: 1 });
-        }
-        return full;
-      }, []);
-    }
-    return ratings.filter(item => item.rating > 0);
+    return keysToCheck.filter((key) => key.indexOf(input) === 0)
   };
 
   // Refresh or clear the screen
@@ -673,38 +661,43 @@ class Terminal extends Component {
             break;
           case 'tab':
             e.preventDefault();
-            if (inputRef.value !== '' && this.state.tabbed === true) {
-              const contents = this.autocompleteValue(inputRef);
-              this.printLine(instance, `${instance.state.promptPrefix}${instance.state.prompt} ${inputRef.value}`, false);
-              this.printLine(
-                instance,
-                (
-                  <span>
-                    {contents.filter(item => typeof item !== 'undefined').map((item) => {
-                    const styles = {
-                      marginRight: 5,
-                      width: 'calc(33% - 5px)',
-                      display: 'inline-block',
-                    };
-                    if (contents.length > 3) {
-                      styles.marginBottom = 5;
-                    }
-                    return (
-                      <span
-                        style={styles}
-                        key={`${item.target}-${item.rating}`}
-                      >
-                        {item.target}
-                      </span>
-                    );
-                  })}
-                  </span>
-                ),
-                false,
-              );
-              this.setState({ tabbed: false });
-            } else {
-              this.setState({ tabbed: true });
+            if (inputRef.value !== '') {
+              const candidates = this.autocompleteValue(inputRef);
+              if (candidates.length === 1) {
+                inputRef.value = candidates[0]
+                return
+              }
+              if (candidates.length > 1 && this.state.tabbed) {
+                this.printLine(instance, `${instance.state.promptPrefix}${instance.state.prompt} ${inputRef.value}`, false);
+                this.printLine(
+                  instance,
+                  (
+                    <span>
+                      {candidates.map((item, idx) => {
+                      const styles = {
+                        marginRight: 5,
+                        width: 'calc(33% - 5px)',
+                        display: 'inline-block',
+                      };
+                      if (candidates.length > 3) {
+                        styles.marginBottom = 5;
+                      }
+                      return (
+                        <span
+                          style={styles}
+                          key={idx}
+                        >
+                          {item}
+                        </span>
+                      );
+                    })}
+                    </span>
+                  ),
+                  false,
+                );
+              } else if (candidates.length > 1) {
+                this.setState({ tabbed: true });
+              }
             }
             break;
           default:
