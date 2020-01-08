@@ -496,7 +496,6 @@ class Terminal extends Component {
         };
       }
     });
-
     this.setState({ commands: modCommands(commands) });
   };
 
@@ -506,9 +505,25 @@ class Terminal extends Component {
    */
   autocompleteValue = (inputRef) => {
     const input = inputRef.value;
-    const { descriptions } = this.state;
-    const keysToCheck = Object.keys(descriptions).filter(key => descriptions[key] !== false);
-    return keysToCheck.filter((key) => key.indexOf(input) === 0)
+    const inputArr = input.trim().split(' ')
+    let commandStr = inputArr[0]
+    let commandObj = this.state.commands[commandStr]
+    
+    let candidates, searchTerm
+    if (commandObj) {
+      candidates = commandObj.autoComplete
+      searchTerm = inputArr[1]
+    } else {
+      const { descriptions } = this.state;
+      candidates = Object.keys(descriptions).filter(key => descriptions[key] !== false);
+      searchTerm = commandStr
+    }
+    
+    if (searchTerm) {
+      candidates = candidates.filter((key) => key.indexOf(searchTerm) === 0)
+    }
+    return candidates
+    
   };
 
   // Refresh or clear the screen
@@ -661,43 +676,41 @@ class Terminal extends Component {
             break;
           case 'tab':
             e.preventDefault();
-            if (inputRef.value !== '') {
-              const candidates = this.autocompleteValue(inputRef);
-              if (candidates.length === 1) {
-                inputRef.value = candidates[0]
-                return
-              }
-              if (candidates.length > 1 && this.state.tabbed) {
-                this.printLine(instance, `${instance.state.promptPrefix}${instance.state.prompt} ${inputRef.value}`, false);
-                this.printLine(
-                  instance,
-                  (
-                    <span>
-                      {candidates.map((item, idx) => {
-                      const styles = {
-                        marginRight: 5,
-                        width: 'calc(33% - 5px)',
-                        display: 'inline-block',
-                      };
-                      if (candidates.length > 3) {
-                        styles.marginBottom = 5;
-                      }
-                      return (
-                        <span
-                          style={styles}
-                          key={idx}
-                        >
-                          {item}
-                        </span>
-                      );
-                    })}
-                    </span>
-                  ),
-                  false,
-                );
-              } else if (candidates.length > 1) {
-                this.setState({ tabbed: true });
-              }
+            const candidates = this.autocompleteValue(inputRef);
+            if (candidates.length === 1) {
+              this.updateInputWithAutoComplete(inputRef, candidates[0])
+              return
+            }
+            if (candidates.length > 1 && this.state.tabbed) {
+              this.printLine(instance, `${instance.state.promptPrefix}${instance.state.prompt} ${inputRef.value}`, false);
+              this.printLine(
+                instance,
+                (
+                  <span>
+                    {candidates.map((item, idx) => {
+                    const styles = {
+                      marginRight: 5,
+                      width: 'calc(33% - 5px)',
+                      display: 'inline-block',
+                    };
+                    if (candidates.length > 3) {
+                      styles.marginBottom = 5;
+                    }
+                    return (
+                      <span
+                        style={styles}
+                        key={idx}
+                      >
+                        {item}
+                      </span>
+                    );
+                  })}
+                  </span>
+                ),
+                false,
+              );
+            } else if (candidates.length > 1) {
+              this.setState({ tabbed: true });
             }
             break;
           default:
@@ -711,6 +724,14 @@ class Terminal extends Component {
     this.checkShortcuts(instance, key, e);
   }
 
+  updateInputWithAutoComplete = function (inputRef, thingToAdd) {
+    let inputArr = inputRef.value.trim().split(' ')
+    if (inputArr.length > 1) {
+      inputRef.value = inputArr[0] + ' ' + thingToAdd
+    } else {
+      inputRef.value = thingToAdd
+    }
+  }
   // Plugins
   loadPlugins = () => {
     const pluginData = {};

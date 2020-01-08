@@ -68,10 +68,12 @@ export function modCommands(commands) {
         needsInstance = definition.needsInstance || false;
       }
 
+      let autoComplete = definition.autoComplete || []
       newCommands[name] = {
         parse,
         method,
         needsInstance,
+        autoComplete
       };
     }
   });
