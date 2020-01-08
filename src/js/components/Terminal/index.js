@@ -512,6 +512,7 @@ class Terminal extends Component {
     let candidates, searchTerm
     if (commandObj) {
       candidates = commandObj.autoComplete
+      if (typeof commandObj.autoComplete === 'function') candidates = candidates()
       searchTerm = inputArr[1]
     } else {
       const { descriptions } = this.state;
