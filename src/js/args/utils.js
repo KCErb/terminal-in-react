@@ -91,6 +91,7 @@ export default {
   getOptions(definedSubcommand) {
     const options = {};
     const args = {};
+    let optsMsg = ''
 
     // Set option defaults
     for (const option of this.details.options) {
@@ -129,11 +130,11 @@ export default {
           option,
           availableOptions,
         );
-
-        console.log(`The option "${option}" is unknown.`); // eslint-disable-line
+        
+        optsMsg += ` The option "${option}" is unknown.\n`
 
         if (suggestOption.bestMatch.rating >= 0.5) {
-          console.log(' Did you mean the following one?\n'); // eslint-disable-line
+          optsMsg += ' Did you mean the following one?\n';
 
           const suggestion = this.details.options.filter((item) => {
             for (const flag of item.usage) {
@@ -145,15 +146,17 @@ export default {
             return false;
           });
 
-          console.log(`${this.generateDetails(suggestion)[0].trim()}\n`); // eslint-disable-line
+          optsMsg += `${this.generateDetails(suggestion)[0].trim()}\n`;
         } else {
-          console.log(' Here\'s a list of all available options: \n'); // eslint-disable-line
-          this.showHelp();
+          optsMsg += ' Here\'s a list of all available options: \n';
+          optsMsg += this.showHelp();
         }
+        break
       }
     }
 
     options._ = _;
+    if (optsMsg) options.unknownOptionMessage = optsMsg;
     return options;
   },
 
@@ -235,15 +238,6 @@ export default {
 
       // Compensate the difference to longest property with spaces
       usage += ' '.repeat(difference);
-
-      // Add some space around it as well
-      if (typeof defaultValue !== 'undefined') {
-        if (typeof defaultValue === 'boolean') {
-          description += ` (${defaultValue ? 'enabled' : 'disabled'} by default)`;
-        } else {
-          description += ` (defaults to ${JSON.stringify(defaultValue)})`;
-        }
-      }
       parts.push(`  ${this.printMainColor(usage)}  ${this.printSubColor(description)}`);
     }
 
@@ -268,6 +262,8 @@ export default {
   },
 
   isDefined(name, list) {
+    console.log('check isDefined', name, list)
+    console.log('check isDefined details', this.details)
     // Get all items of kind
     const children = this.details[list];
 
