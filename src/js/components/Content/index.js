@@ -20,7 +20,7 @@ class Content extends Component {
   };
 
   static defaultProps = {
-    prompt: '>',
+    prompt: '> ',
     oldData: {},
   };
 
@@ -35,7 +35,7 @@ class Content extends Component {
   state = {
     summary: [],
     promptPrefix: '',
-    prompt: '>',
+    prompt: '> ',
     history: [],
     historyCounter: 0,
     input: [],
@@ -145,6 +145,7 @@ class Content extends Component {
 
     return (
       <ContainerMain
+        className="terminal-container-main"
         style={{
           ...(maximise
             ? { maxWidth: '100%', maxHeight: `calc(100% - ${toSubtract}px)` }
@@ -157,15 +158,16 @@ class Content extends Component {
         onKeyUp={this.handleOuterKeypress}
         innerRef={(ctw) => { this.contentWrapper = ctw; }}
       >
-        <Holder>
-          <ContainerContent>
-            <InputArea>
+        <Holder className="terminal-holder">
+          <ContainerContent className="terminal-container-content">
+            <InputArea className="terminal-input-area">
               {output}
               <Input
                 innerRef={(elm) => { this.inputWrapper = elm; }}
+                className="terminal-input"
               >
-                <Prompt>
-                  {this.state.promptPrefix + this.state.prompt}
+                <Prompt className="terminal-prompt">
+                  {this.state.promptPrefix + this.state.prompt}&nbsp;
                 </Prompt>
                 <MainInput
                   type="text"
@@ -173,6 +175,7 @@ class Content extends Component {
                   innerRef={(com) => { this.com = com; }}
                   onKeyPress={this.handleChange}
                   onKeyDown={this.handleKeyPress}
+                  className="terminal-main-input"
                 />
               </Input>
             </InputArea>
