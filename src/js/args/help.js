@@ -62,5 +62,5 @@ export default function () {
     output = usageFilter(output) || output;
   }
 
-  console.log(output); // eslint-disable-line
+  return output
 }

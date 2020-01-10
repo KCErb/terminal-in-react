@@ -206,25 +206,29 @@ export default {
       let initial = items[item].defaultValue;
 
       // If usage is an array, show its contents
+      let usageString
       if (usage.constructor === Array) {
         if (isCmd) {
-          usage = usage.join(', ');
+          usageString = usage.join(', ');
         } else {
           const isVersion = usage.indexOf('v');
-          usage = `-${usage[0]}, --${usage[1]}`;
+          usageString = `-${usage[0]}`;
+          if (usage.length > 1 && usage[1].length > 1) usageString += `, --${usage[1]}`;
 
           if (!initial) {
             initial = items[item].init;
           }
 
-          usage += initial && isVersion === -1
+          usageString += initial && isVersion === -1
             ? ` ${this.handleType(initial)[0]}`
             : '';
         }
+      } else {
+        usageString = usage
       }
 
       // Overwrite usage with readable syntax
-      items[item].usage = usage;
+      items[item].usage = usageString;
     }
 
     // Find length of longest option or command
@@ -262,21 +266,20 @@ export default {
   },
 
   isDefined(name, list) {
-    console.log('check isDefined', name, list)
-    console.log('check isDefined details', this.details)
     // Get all items of kind
     const children = this.details[list];
 
     // Check if a child matches the requested name
     for (const child of children) {
-      const { usage } = child;
-      const type = usage.constructor;
+      let { usage } = child;
+      let type = usage.constructor;
 
-      if (type === Array && usage.indexOf(name) > -1) {
-        return child;
+      if (type === String) {
+        usage = this.usageStringToArrayForm(usage)
+        type = Array
       }
 
-      if (type === String && usage === name) {
+      if (type === Array && usage.indexOf(name) > -1) {
         return child;
       }
     }
@@ -284,4 +287,10 @@ export default {
     // If nothing matches, item is not defined
     return false;
   },
+
+  // a usage string is in the form "-a" or "-f, --file"
+  // name is in the form, "a" or "file".
+  usageStringToArrayForm(usageString) {
+    return usageString.split(", ").map(str => str.replace(/-/g, ''))
+  }
 };

@@ -32,7 +32,14 @@ export default function (name, description, defaultValue, init) {
     description,
   };
 
-  if (this.details.options.filter(item => item.usage[1] === usage[1]).length === 0) {
+  let matches = this.details.options.filter(item => {
+    if (item.usage.constructor === String) {
+      item.usage = this.usageStringToArrayForm(item.usage)
+    }
+    return item.usage[1] === usage[1]
+  })
+  
+  if (matches.length === 0) {
     let defaultIsWrong;
 
     switch (defaultValue) {
