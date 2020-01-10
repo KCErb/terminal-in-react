@@ -217,7 +217,7 @@ class Terminal extends Component {
   getAppContent = () => {
     const { show, minimise } = this.state;
     if (!show) {
-      return this.getNote();
+      return this.props.getNote ? this.props.getNote() : this.getNote();
     }
     if (minimise) {
       return this.getBar();
